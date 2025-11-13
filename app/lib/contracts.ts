@@ -12,5 +12,5 @@ export const CONTRACTS = {
   ],
 
   // 🎶 Base music NFT collection (required to access music route)
-  musicAccess: "0xYourMusicCollectionContractHere", // ← replace with your deployed contract
+  musicAccess: "0x3D1E34Aa63d26f7b1307b96a612a40e5F8297AC7", // ← replace with your deployed contract
 }

@@ -13,9 +13,9 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-    "baseUrl": ".",             // ✅ REQUIRED
+    "baseUrl": ".",             
     "paths": {
-      "@/*": ["./*"]            // ✅ ROOT alias works everywhere
+      "@/*": ["./*"]            
     },
     "plugins": [
       { "name": "next" }
