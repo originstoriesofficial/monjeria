@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useAccount, useBalance, useWalletClient } from 'wagmi'
 import axios from 'axios'
 import { ethers } from 'ethers'
-import { CONTRACTS } from "@/lib/contracts"
+import { CONTRACTS } from "../../lib/contracts"
 
 export default function CreatePage() {
   const { address } = useAccount()
