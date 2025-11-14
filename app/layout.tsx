@@ -1,9 +1,6 @@
-'use client';
-
 import type { Metadata } from "next";
 import { Inter, Source_Code_Pro } from "next/font/google";
 import "./globals.css";
-import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -31,7 +28,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(() => new QueryClient());
+  const queryClient = new QueryClient();
 
   return (
     <html lang="en">
