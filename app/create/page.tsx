@@ -4,10 +4,10 @@ import { useState } from 'react';
 import axios from 'axios';
 import { parseEther } from 'viem';
 import { writeContract, getAccount } from '@wagmi/core';
-import { wagmiConfig } from '../lib/wagmi'; // ✅ you must import this
-
+import { wagmiConfig } from '../lib/wagmi';
 import ComposeCastButton from '../components/ComposeCastButton';
 import { MONKERIA_ABI } from '../lib/abi/monkeria';
+import Image from 'next/image';
 
 const MONKERIA_ADDRESS = '0x3D1E34Aa63d26f7b1307b96a612a40e5F8297AC7';
 
@@ -33,11 +33,15 @@ export default function CreatePage() {
         capeColor: cape,
         attribute: hand,
       });
-      setImage(res.data.imageUrl);
+
+      const imageUrl = res.data?.imageUrl;
+      if (!imageUrl) throw new Error('No image URL returned from generation API');
+
+      setImage(imageUrl);
       setTries((t) => t + 1);
     } catch (err) {
       console.error('Error generating monk:', err);
-      alert('Error generating image.');
+      alert('❌ Error generating image. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -48,29 +52,26 @@ export default function CreatePage() {
 
     setMinting(true);
     try {
-      const { address } = getAccount(wagmiConfig); // ✅ fixed
+      const { address } = getAccount(wagmiConfig);
 
       if (!address) {
         alert('Wallet not connected.');
         return;
       }
 
-      await writeContract(
-        wagmiConfig, // ✅ first arg
-        {
-          address: MONKERIA_ADDRESS,
-          abi: MONKERIA_ABI,
-          functionName: 'mint',
-          account: address,
-          value: parseEther('0'),
-          args: [image, 1], // ✅ viem expects args inside config
-        }
-      );
+      await writeContract(wagmiConfig, {
+        address: MONKERIA_ADDRESS,
+        abi: MONKERIA_ABI,
+        functionName: 'mint',
+        account: address,
+        value: parseEther('0'),
+        args: [image, 1],
+      });
 
       alert('✅ Mint successful!');
     } catch (err) {
       console.error('Mint error:', err);
-      alert('Mint failed.');
+      alert('❌ Mint failed. Try again.');
     } finally {
       setMinting(false);
     }
@@ -97,7 +98,13 @@ export default function CreatePage() {
 
         {image && (
           <div className="mt-6 text-center space-y-4">
-            <img src={image} alt="Generated Monk" className="w-full rounded-lg shadow-lg" />
+            <Image
+              src={image}
+              alt="Generated Monk"
+              width={512}
+              height={512}
+              className="w-full rounded-lg shadow-lg"
+            />
 
             <button
               onClick={handleMint}
