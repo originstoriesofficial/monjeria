@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Source_Code_Pro } from "next/font/google";
 import "./globals.css";
-import QueryProvider from "./components/query-provider"; // 👇 new client wrapper
+import QueryProvider from "./query-provider"; // 👇 new client wrapper
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const sourceCodePro = Source_Code_Pro({ subsets: ["latin"], variable: "--font-source-code-pro" });
