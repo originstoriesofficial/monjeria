@@ -23,6 +23,8 @@ export async function GET(req: NextRequest) {
     const payload = await quickAuthClient.verifyJwt({ token, domain: DOMAIN });
     const fid = payload.sub;
 
+    console.log('✅ Verified token, FID:', fid);
+
     // 2. Fetch connected ETH addresses from Neynar
     const neynarRes = await fetch(`https://api.neynar.com/v2/fid/${fid}`, {
       headers: { 'api_key': NEYNAR_API_KEY },
@@ -33,7 +35,10 @@ export async function GET(req: NextRequest) {
     const { connected_addresses } = await neynarRes.json();
     const addresses: string[] = connected_addresses.eth_addresses;
 
+    console.log('🔍 Checking connected addresses:', addresses);
+
     if (!addresses || addresses.length === 0) {
+      console.log('⚠️ No connected addresses found.');
       return NextResponse.json({ tier: 'public' });
     }
 
@@ -54,9 +59,13 @@ export async function GET(req: NextRequest) {
         const json = await alchemyRes.json();
         const balance = json.result?.tokenBalances?.[0]?.tokenBalance;
 
+        console.log(`➡️ ${address} | Balance:`, balance);
+
         return balance && BigInt(balance) > 0n;
       })
     ).catch(() => false);
+
+    console.log('🎯 Token holder:', isHolder);
 
     return NextResponse.json({ tier: isHolder ? 'originHolder' : 'public', fid });
   } catch (err) {
