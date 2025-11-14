@@ -8,29 +8,32 @@ const ROOT_URL =
  * @see {@link https://miniapps.farcaster.xyz/docs/guides/publishing}
  */
 export const minikitConfig = {
-  accountAssociation: {
-    header: "",
-    payload: "",
-    signature: ""
-  },
-  miniapp: {
-    version: "1",
-      name: "La Monjeria", 
-      subtitle: "Your AI Monk Creator",
-      description: "Mint monks, create music",
-    screenshotUrls: [`${ROOT_URL}/screenshot-portrait.png`],
-    iconUrl: `${ROOT_URL}/blue-icon.png`,
-    splashImageUrl: `${ROOT_URL}/blue-hero.png`,
-    splashBackgroundColor: "#000000",
-    homeUrl: ROOT_URL,
-    webhookUrl: `${ROOT_URL}/api/webhook`,
-    primaryCategory: "social",
-    tags: ["marketing", "ads", "quickstart", "waitlist"],
-    heroImageUrl: `${ROOT_URL}/blue-hero.png`, 
-    tagline: "",
-    ogTitle: "",
-    ogDescription: "",
-    ogImageUrl: `${ROOT_URL}/blue-hero.png`,
-  },
-} as const;
 
+  "accountAssociation": {
+    "header": "eyJmaWQiOjEzMzE0LCJ0eXBlIjoiY3VzdG9keSIsImtleSI6IjB4RDY5OWM4MkVDRGQxN0E2RTk3RDcyNjRkMDM0MjlFRjVjNzM4RTJiMCJ9",
+    "payload": "eyJkb21haW4iOiJtb25qZXJpYS52ZXJjZWwuYXBwIn0",
+    "signature": "tv915xXSbH2H94C+S2IIR/4f3b7NsQik3HzkWavOOgNP3LtnPoDKowNQUNxokmdhMAm8lMmNvDj/JICZmtmR8hs="
+  
+},
+
+  "baseBuilder": {
+    "ownerAddress": "0x1ffcD029CE51fFf63C2Cc32445779CDE27C0C40f"
+  },
+  "miniapp": {
+      "version": "1",
+      "name": "La Monjeria",
+      "iconUrl": "https://monjeria.vercel.app/icon.png",
+      "homeUrl": "https://monjeria.vercel.app",
+      "imageUrl": "https://monjeria.vercel.app/image.png",
+      "splashImageUrl": "https://monjeria.vercel.app/splash.png",
+      "splashBackgroundColor": "#ce19e6",
+      "webhookUrl": "https://monjeria.vercel.app/api/webhook",
+      "subtitle": "AI Animation and Music Studio",
+      "description": "Create and mint your own Monje and craft a unique music anthem",
+      "primaryCategory": "entertainment",
+      "tags": ["music", "art", "nft", "ai", "creativity"],
+      "ogTitle": "La Monjería - AI Studio",
+      "ogDescription": "Create, customize, and soundtrack your own Monje on Base"
+    
+  }
+}
