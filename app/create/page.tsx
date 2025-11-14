@@ -62,7 +62,7 @@ export default function CreatePage() {
           abi: MONKERIA_ABI,
           functionName: 'mint',
           account: address,
-          value: parseEther('0.002'),
+          value: parseEther('0'),
           args: [image, 1], // ✅ viem expects args inside config
         }
       );

@@ -1,56 +1,57 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { sdk } from '@farcaster/miniapp-sdk';
-import styles from './page.module.css';
 
 export default function Home() {
-  const [user, setUser] = useState<{ displayName?: string } | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const router = useRouter();
 
-  useEffect(() => {
-    async function loadContext() {
-      const context = await sdk.context;
-      if (context?.user) {
-        setUser(context.user);
-      }
-    }
+  const handleEntrar = async () => {
+    setError('');
+    setLoading(true);
 
-    loadContext();
-  }, []);
+    try {
+      const { token } = await sdk.quickAuth.getToken();
+
+      const response = await sdk.quickAuth.fetch('/api/check-nft', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const { ownsNFT } = await response.json();
+
+      if (!ownsNFT) {
+        setError("❌ Sorry you don’t own any OriginStory. Grab some ⚡️ and try again.");
+        return;
+      }
+
+      // If owns NFT, show options
+      router.push('/dashboard');
+    } catch (err) {
+      console.error(err);
+      setError('Something went wrong. Try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className={styles.container}>
-      <button className={styles.closeButton} type="button">
-        ✕
+    <main className="min-h-screen bg-black text-white flex flex-col items-center justify-center space-y-6 p-6">
+      <h1 className="text-4xl font-bold text-amber-400">⚡️ La Monjería</h1>
+
+      <button
+        onClick={handleEntrar}
+        className="bg-amber-600 px-6 py-3 rounded-lg text-lg font-bold hover:bg-amber-700 transition"
+        disabled={loading}
+      >
+        {loading ? 'Checking...' : 'Entrar'}
       </button>
 
-      <div className={styles.content}>
-        <div className={styles.waitlistForm}>
-          <h1 className={styles.title}>Welcome to LA MONJERIA</h1>
-
-          <p className={styles.subtitle}>
-            Hey {user?.displayName || 'there'}, choose your path:
-          </p>
-
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '2rem' }}>
-            <button
-              onClick={() => router.push('/create')}
-              className={styles.joinButton}
-            >
-              🧘 Create
-            </button>
-
-            <button
-              onClick={() => router.push('/music')}
-              className={styles.joinButton}
-            >
-              🎵 Play
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+      {error && <p className="text-red-500 text-center">{error}</p>}
+    </main>
   );
 }

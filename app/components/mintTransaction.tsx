@@ -5,6 +5,7 @@ import {
   TransactionButton,
   TransactionStatus,
   TransactionStatusLabel,
+  TransactionStatusAction,
 } from '@coinbase/onchainkit/transaction';
 import { baseSepolia } from 'viem/chains';
 import { MintContractABI } from '../lib/abi/mintContract';
@@ -19,16 +20,20 @@ export function MintTransaction({ ipfsUrl }: { ipfsUrl: string }) {
       <Transaction
         chainId={baseSepolia.id}
         isSponsored={true}
-        /** ✅ renamed `contracts` → `calls` (correct prop name in latest SDK) */
         calls={[
           {
             address: CONTRACTS.mintContract as `0x${string}`,
             abi: MintContractABI,
             functionName: 'mint',
-            args: [ipfsUrl, BigInt(1)], // ✅ BigInt ensures type safety
+            args: [ipfsUrl, BigInt(1)],
             value: BigInt(0),
           },
         ]}
+        capabilities={{
+          paymasterService: {
+            url: process.env.NEXT_PUBLIC_PAYMASTER_AND_BUNDLER_ENDPOINT!,
+          },
+        }}
         onStatus={(s) => setStatus(s.statusName)}
       >
         <TransactionButton
@@ -37,6 +42,7 @@ export function MintTransaction({ ipfsUrl }: { ipfsUrl: string }) {
         />
         <TransactionStatus className="mt-3">
           <TransactionStatusLabel className="text-gray-400" />
+          <TransactionStatusAction />
         </TransactionStatus>
       </Transaction>
 
