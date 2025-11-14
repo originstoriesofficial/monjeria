@@ -1,19 +1,24 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
-import { useMiniKit } from "@coinbase/onchainkit/minikit";
-import { useRouter } from "next/navigation";
-import styles from "./page.module.css";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { sdk } from '@farcaster/miniapp-sdk';
+import styles from './page.module.css';
 
 export default function Home() {
-  const { isFrameReady, setFrameReady, context } = useMiniKit();
+  const [user, setUser] = useState<{ displayName?: string } | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    if (!isFrameReady) {
-      setFrameReady();
+    async function loadContext() {
+      const context = await sdk.context;
+      if (context?.user) {
+        setUser(context.user);
+      }
     }
-  }, [setFrameReady, isFrameReady]);
+
+    loadContext();
+  }, []);
 
   return (
     <div className={styles.container}>
@@ -26,19 +31,19 @@ export default function Home() {
           <h1 className={styles.title}>Welcome to LA MONJERIA</h1>
 
           <p className={styles.subtitle}>
-            Hey {context?.user?.displayName || "there"}, choose your path:
+            Hey {user?.displayName || 'there'}, choose your path:
           </p>
 
-          <div style={{ display: "flex", gap: "1rem", justifyContent: "center", marginTop: "2rem" }}>
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '2rem' }}>
             <button
-              onClick={() => router.push("/create")}
+              onClick={() => router.push('/create')}
               className={styles.joinButton}
             >
               🧘 Create
             </button>
 
             <button
-              onClick={() => router.push("/music")}
+              onClick={() => router.push('/music')}
               className={styles.joinButton}
             >
               🎵 Play

@@ -1,22 +1,22 @@
 import type { Metadata } from "next";
 import { Inter, Source_Code_Pro } from "next/font/google";
-import { SafeArea } from "@coinbase/onchainkit/minikit";
-import { OnchainKitProvider } from "@coinbase/onchainkit";
-import { baseSepolia } from "viem/chains";
-import { minikitConfig } from "../minikit.config";
 import "./globals.css";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: minikitConfig.miniapp.name,
-    description: minikitConfig.miniapp.description,
+    title: "La Monjería",
+    description: "AI Animation and Music Studio",
     other: {
-      "fc:frame": JSON.stringify({
-        version: minikitConfig.miniapp.version,
-        imageUrl: minikitConfig.miniapp.heroImageUrl,
+      "fc:miniapp": JSON.stringify({
+        version: "next",
+        imageUrl: "https://monjeria.vercel.app/preview.png", // Replace with actual preview image
         button: {
-          title: `Launch ${minikitConfig.miniapp.name}`,
-          action: { type: "launch_frame" },
+          title: "Enter La Monjería",
+          action: {
+            type: "launch_frame",
+            name: "La Monjería",
+            url: "https://monjeria.vercel.app", // Replace with actual deployed app URL
+          },
         },
       }),
     },
@@ -30,12 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={`${inter.variable} ${sourceCodePro.variable} bg-black text-white`}>
-        <OnchainKitProvider
-          apiKey={process.env.NEXT_PUBLIC_CDP_API_KEY!}
-          chain={baseSepolia}
-        >
-          <SafeArea>{children}</SafeArea>
-        </OnchainKitProvider>
+        {children}
       </body>
     </html>
   );
