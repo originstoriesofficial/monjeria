@@ -5,13 +5,18 @@ const pinata = new PinataSDK({
   pinataGateway: process.env.PINATA_GATEWAY!,
 });
 
-// Upload file (e.g., image) to IPFS
-export async function uploadToIPFS(file: File, attributes?: Record<string, any>) {
+type MetadataAttributes = {
+  name?: string;
+  animal: string;
+  cape: string;
+  hand: string;
+};
+
+export async function uploadToIPFS(file: File, attributes?: MetadataAttributes) {
   try {
     const imageUpload = await pinata.upload.public.file(file);
     const imageUrl = `https://${process.env.PINATA_GATEWAY!}/ipfs/${imageUpload.cid}`;
 
-    // If attributes are passed, upload metadata
     if (attributes) {
       const metadata = {
         name: attributes.name || 'Originstory Token',
@@ -31,6 +36,7 @@ export async function uploadToIPFS(file: File, attributes?: Record<string, any>)
       );
 
       const metadataUpload = await pinata.upload.public.file(metadataFile);
+
       return {
         cid: metadataUpload.cid,
         tokenURI: `https://${process.env.PINATA_GATEWAY!}/ipfs/${metadataUpload.cid}`,
