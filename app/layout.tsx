@@ -1,6 +1,13 @@
+'use client';
+
 import type { Metadata } from "next";
 import { Inter, Source_Code_Pro } from "next/font/google";
 import "./globals.css";
+import { useState } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const sourceCodePro = Source_Code_Pro({ subsets: ["latin"], variable: "--font-source-code-pro" });
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -9,13 +16,13 @@ export async function generateMetadata(): Promise<Metadata> {
     other: {
       "fc:miniapp": JSON.stringify({
         version: "next",
-        imageUrl: "https://monjeria.vercel.app/preview.png", // Replace with actual preview image
+        imageUrl: "https://monjeria.vercel.app/preview.png",
         button: {
           title: "Enter La Monjería",
           action: {
             type: "launch_frame",
             name: "La Monjería",
-            url: "https://monjeria.vercel.app", // Replace with actual deployed app URL
+            url: "https://monjeria.vercel.app",
           },
         },
       }),
@@ -23,14 +30,15 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const sourceCodePro = Source_Code_Pro({ subsets: ["latin"], variable: "--font-source-code-pro" });
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const [queryClient] = useState(() => new QueryClient());
+
   return (
     <html lang="en">
       <body className={`${inter.variable} ${sourceCodePro.variable} bg-black text-white`}>
-        {children}
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
       </body>
     </html>
   );
