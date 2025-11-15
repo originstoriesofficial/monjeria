@@ -4,7 +4,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import { parseEther } from 'viem';
 import { useAccount } from 'wagmi';
-import { writeContract } from 'wagmi/actions';
+import { writeContract } from '@wagmi/core'
 import ComposeCastButton from '../components/ComposeCastButton';
 import { MONKERIA_ABI } from '../lib/abi/monkeria';
 import Image from 'next/image';
