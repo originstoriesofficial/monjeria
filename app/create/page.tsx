@@ -1,87 +1,81 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import axios from 'axios';
-import { parseEther } from 'viem';
-import { useAccount } from 'wagmi';
+import { useState } from 'react'
+import axios from 'axios'
+import { parseEther } from 'viem'
+import { useAccount } from 'wagmi'
 import { writeContract } from '@wagmi/core'
-import ComposeCastButton from '../components/ComposeCastButton';
-import { MONKERIA_ABI } from '../lib/abi/monkeria';
-import Image from 'next/image';
+import { wagmiConfig } from '../lib/wagmi'
+import ComposeCastButton from '../components/ComposeCastButton'
+import { MONKERIA_ABI } from '../lib/abi/monkeria'
+import Image from 'next/image'
 
-// ✅ Deployed contract address
-const MONKERIA_ADDRESS = '0x3D1E34Aa63d26f7b1307b96a612a40e5F8297AC7';
+const MONKERIA_ADDRESS = '0x3D1E34Aa63d26f7b1307b96a612a40e5F8297AC7'
 
 export default function CreatePage() {
-  const { address, isConnected } = useAccount(); // ✅ Hook at top level
+  const { address, isConnected } = useAccount()
 
-  const [animal, setAnimal] = useState('');
-  const [cape, setCape] = useState('');
-  const [hand, setHand] = useState('');
-  const [image, setImage] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [minting, setMinting] = useState(false);
-  const [tries, setTries] = useState(0);
+  const [animal, setAnimal] = useState('')
+  const [cape, setCape] = useState('')
+  const [hand, setHand] = useState('')
+  const [image, setImage] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [minting, setMinting] = useState(false)
+  const [tries, setTries] = useState(0)
 
   const handleGenerate = async () => {
     if (tries >= 3) {
-      alert('Has alcanzado el límite de 3 generaciones / You reached 3 attempts.');
-      return;
+      alert('Has alcanzado el límite de 3 generaciones / You reached 3 attempts.')
+      return
     }
 
     try {
-      setLoading(true);
-
+      setLoading(true)
       const res = await axios.post('/api/generate-image', {
         animalType: animal,
         capeColor: cape,
         attribute: hand,
-      });
+      })
 
-      const imageUrl = res.data?.imageUrl;
+      const imageUrl = res.data?.imageUrl
+      if (!imageUrl) throw new Error('No image URL returned')
 
-      if (!imageUrl) {
-        throw new Error('No image URL returned from generation API');
-      }
-
-      setImage(imageUrl);
-      setTries((prev) => prev + 1);
+      setImage(imageUrl)
+      setTries((prev) => prev + 1)
     } catch (err) {
-      console.error('Error generating monk:', err);
-      alert('❌ Error generating image. Please try again.');
+      console.error('Generation error:', err)
+      alert('❌ Error generating image. Try again.')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleMint = async () => {
-    if (!image) return;
-
-    if (!isConnected || !address) {
-      alert('Wallet not connected.');
-      return;
+    if (!image || !isConnected || !address) {
+      alert('Wallet not connected or image missing.')
+      return
     }
 
-    setMinting(true);
+    setMinting(true)
 
     try {
-      await writeContract({
+      await writeContract(wagmiConfig, {
         address: MONKERIA_ADDRESS,
         abi: MONKERIA_ABI,
         functionName: 'mint',
         account: address,
         value: parseEther('0'),
-        args: [image, 1], // assuming (string memory _uri, uint256 amount)
-      });
+        args: [image, 1],
+      })
 
-      alert('✅ Mint successful!');
+      alert('✅ Mint successful!')
     } catch (err) {
-      console.error('Mint error:', err);
-      alert('❌ Mint failed. Try again.');
+      console.error('Mint error:', err)
+      alert('❌ Mint failed. Try again.')
     } finally {
-      setMinting(false);
+      setMinting(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center px-4">
@@ -125,7 +119,7 @@ export default function CreatePage() {
         )}
       </div>
     </div>
-  );
+  )
 }
 
 function Input({
@@ -134,10 +128,10 @@ function Input({
   setValue,
   placeholder,
 }: {
-  label: string;
-  value: string;
-  setValue: (v: string) => void;
-  placeholder: string;
+  label: string
+  value: string
+  setValue: (v: string) => void
+  placeholder: string
 }) {
   return (
     <div>
@@ -149,5 +143,5 @@ function Input({
         onChange={(e) => setValue(e.target.value)}
       />
     </div>
-  );
+  )
 }
