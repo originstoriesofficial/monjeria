@@ -11,7 +11,7 @@ const ORIGIN_CONTRACT = '0x45737f6950f5c9e9475e9e045c7a89b565fa3648';
 
 const publicClient = createPublicClient({
   chain: base,
-  transport: http(process.env.RPC_URL!), // Alchemy / Infura RPC URL
+  transport: http(process.env.RPC_URL!), // e.g. Alchemy or Infura
 });
 
 export async function GET(req: NextRequest) {
@@ -24,23 +24,27 @@ export async function GET(req: NextRequest) {
   const token = authHeader.split(' ')[1];
 
   try {
-    // ✅ Step 1: Verify JWT and get FID
+    // ✅ 1. Verify the QuickAuth JWT
     const payload = await quickAuthClient.verifyJwt({ token, domain: DOMAIN });
     const fid = Number(payload.sub);
 
-    // ✅ Step 2: Lookup custody address via Neynar
+    // ✅ 2. Get custody address from Neynar
     const userRes = await fetch(`https://api.neynar.com/v2/fid/${fid}`, {
       headers: { 'api_key': NEYNAR_API_KEY },
     });
 
-    const userJson = await userRes.json();
-    const address = userJson?.result?.user?.custody_address as `0x${string}`;
-
-    if (!address) {
-      return NextResponse.json({ error: 'No custody address found' }, { status: 400 });
+    if (!userRes.ok) {
+      return NextResponse.json({ error: 'Neynar lookup failed' }, { status: 500 });
     }
 
-    // ✅ Step 3: Check NFT ownership
+    const user = await userRes.json();
+    const address = user?.result?.user?.custody_address as `0x${string}`;
+
+    if (!address) {
+      return NextResponse.json({ error: 'Custody address not found' }, { status: 400 });
+    }
+
+    // ✅ 3. Check NFT ownership
     const balance = await publicClient.readContract({
       address: ORIGIN_CONTRACT,
       abi: parseAbi(['function balanceOf(address) view returns (uint256)']),
@@ -52,7 +56,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ ownsNFT, address });
   } catch (err) {
-    console.error('🔴 Token or NFT check failed:', err);
+    console.error('🔴 NFT check failed:', err);
     return NextResponse.json({ error: 'Verification failed' }, { status: 500 });
   }
 }
