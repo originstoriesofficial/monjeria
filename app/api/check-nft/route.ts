@@ -1,47 +1,52 @@
-import { createClient } from '@farcaster/quick-auth';
-import { NextRequest, NextResponse } from 'next/server';
-import { base } from 'viem/chains';
-import { createPublicClient, http, parseAbi } from 'viem';
+import { createClient } from '@farcaster/quick-auth'
+import { NextRequest, NextResponse } from 'next/server'
+import { base } from 'viem/chains'
+import { createPublicClient, http, parseAbi } from 'viem'
 
-const quickAuthClient = createClient();
+const quickAuthClient = createClient()
 
-const DOMAIN = process.env.APP_DOMAIN!;
-const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY!;
-const ORIGIN_CONTRACT = '0x45737f6950f5c9e9475e9e045c7a89b565fa3648';
+const DOMAIN = process.env.APP_DOMAIN!
+const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY!
+const ORIGIN_CONTRACT = '0x45737f6950f5c9e9475e9e045c7a89b565fa3648'
 
 const publicClient = createPublicClient({
   chain: base,
-  transport: http(process.env.RPC_URL!), // e.g. Alchemy or Infura
-});
+  transport: http(process.env.RPC_URL!), // your Base RPC (Alchemy/Infura)
+})
 
 export async function GET(req: NextRequest) {
-  const authHeader = req.headers.get('Authorization');
+  const authHeader = req.headers.get('Authorization')
 
   if (!authHeader?.startsWith('Bearer ')) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const token = authHeader.split(' ')[1];
+  const token = authHeader.split(' ')[1]
 
   try {
-    // ✅ 1. Verify the QuickAuth JWT
-    const payload = await quickAuthClient.verifyJwt({ token, domain: DOMAIN });
-    const fid = Number(payload.sub);
+    // ✅ 1. Verify QuickAuth token using your correct domain
+    const payload = await quickAuthClient.verifyJwt({
+      token,
+      domain: DOMAIN,
+    })
 
-    // ✅ 2. Get custody address from Neynar
-    const userRes = await fetch(`https://api.neynar.com/v2/fid/${fid}`, {
+    const fid = Number(payload.sub)
+
+    // ✅ 2. Look up custody address from Neynar (FID → address)
+    const userRes = await fetch(`https://api.neynar.com/v2/farcaster/user-by-fid?fid=${fid}`, {
       headers: { 'api_key': NEYNAR_API_KEY },
-    });
+    })
 
     if (!userRes.ok) {
-      return NextResponse.json({ error: 'Neynar lookup failed' }, { status: 500 });
+      console.error('Neynar lookup failed', await userRes.text())
+      return NextResponse.json({ error: 'Neynar lookup failed' }, { status: 500 })
     }
 
-    const user = await userRes.json();
-    const address = user?.result?.user?.custody_address as `0x${string}`;
+    const userData = await userRes.json()
+    const address = userData?.result?.user?.custody_address as `0x${string}`
 
     if (!address) {
-      return NextResponse.json({ error: 'Custody address not found' }, { status: 400 });
+      return NextResponse.json({ error: 'Custody address not found' }, { status: 404 })
     }
 
     // ✅ 3. Check NFT ownership
@@ -50,13 +55,13 @@ export async function GET(req: NextRequest) {
       abi: parseAbi(['function balanceOf(address) view returns (uint256)']),
       functionName: 'balanceOf',
       args: [address],
-    });
+    })
 
-    const ownsNFT = BigInt(balance) > 0n;
+    const ownsNFT = BigInt(balance) > 0n
 
-    return NextResponse.json({ ownsNFT, address });
+    return NextResponse.json({ ownsNFT, address })
   } catch (err) {
-    console.error('🔴 NFT check failed:', err);
-    return NextResponse.json({ error: 'Verification failed' }, { status: 500 });
+    console.error('🔴 NFT check failed:', err)
+    return NextResponse.json({ error: 'Verification failed' }, { status: 500 })
   }
 }
