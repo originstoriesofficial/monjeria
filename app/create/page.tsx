@@ -1,5 +1,10 @@
 'use client'
+'use client'
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
+export const revalidate = 0
+export const runtime = 'edge' // optional but safest on Vercel
+
 
 import { useState } from 'react'
 import axios from 'axios'
