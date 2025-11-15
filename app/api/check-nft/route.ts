@@ -2,7 +2,7 @@ import { createClient } from '@farcaster/quick-auth'
 import { NextRequest, NextResponse } from 'next/server'
 import { base } from 'viem/chains'
 import { createPublicClient, http, parseAbi } from 'viem'
-import { getFarcasterUser } from '@/app/lib/getFarcasterUser'
+import { getFarcasterUser } from '@/app/lib/getFarcasterUser' // ✅ import only
 
 const quickAuthClient = createClient()
 
@@ -11,7 +11,7 @@ const ORIGIN_CONTRACT = '0x45737f6950f5c9e9475e9e045c7a89b565fa3648'
 
 const publicClient = createPublicClient({
   chain: base,
-  transport: http(process.env.RPC_URL!), // e.g. Alchemy or Infura
+  transport: http(process.env.RPC_URL!),
 })
 
 export async function GET(req: NextRequest) {
@@ -22,20 +22,18 @@ export async function GET(req: NextRequest) {
   const token = authHeader.split(' ')[1]
 
   try {
-    // ✅ 1. Verify the QuickAuth JWT
     const payload = await quickAuthClient.verifyJwt({ token, domain: DOMAIN })
     const fid = Number(payload.sub)
 
-    // ✅ 2. Get user info (custody address) from Neynar by FID
-    const userRes = await fetch(`https://api.neynar.com/v2/farcaster/user/bulk?fids=${fid}`, {
-      headers: { 'x-api-key': process.env.NEYNAR_API_KEY! },
-    })
+    const userRes = await fetch(
+      `https://api.neynar.com/v2/farcaster/user/bulk?fids=${fid}`,
+      {
+        headers: { 'x-api-key': process.env.NEYNAR_API_KEY! },
+        cache: 'no-store',
+      }
+    )
 
-    if (!userRes.ok) {
-      console.error('Neynar user lookup failed', userRes.status)
-      return NextResponse.json({ error: 'Neynar lookup failed' }, { status: 500 })
-    }
-
+    if (!userRes.ok) throw new Error(`Neynar FID lookup failed: ${userRes.status}`)
     const userData = await userRes.json()
     const address = userData?.users?.[0]?.custody_address as `0x${string}`
 
@@ -43,7 +41,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Custody address not found' }, { status: 400 })
     }
 
-    // ✅ 3. Check NFT ownership on-chain
+    const user = await getFarcasterUser(address) // ✅ now cleanly imported
+
     const balance = await publicClient.readContract({
       address: ORIGIN_CONTRACT,
       abi: parseAbi(['function balanceOf(address) view returns (uint256)']),
@@ -53,7 +52,12 @@ export async function GET(req: NextRequest) {
 
     const ownsNFT = BigInt(balance) > 0n
 
-    return NextResponse.json({ verified: ownsNFT, fid, address })
+    return NextResponse.json({
+      verified: ownsNFT,
+      fid,
+      address,
+      username: user?.username ?? null,
+    })
   } catch (err) {
     console.error('🔴 NFT check failed:', err)
     return NextResponse.json({ error: 'Verification failed' }, { status: 500 })
