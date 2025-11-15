@@ -58,7 +58,7 @@ export default function CreatePage() {
 
   const handleMint = async () => {
     if (!image || !isConnected || !address) {
-      alert('Wallet not connected or image missing.')
+      alert('Wallet is not connected or image missing.')
       return
     }
 
